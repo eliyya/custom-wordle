@@ -6,7 +6,6 @@ import Word from "./Word";
  * @returns {Display}
  */
 export default function Display({ words, realWord, colors }) {
-    console.log('dd', colors);
     if (words.length < 6) for (let i = words.length; i < 6; i++) words.push(" ".repeat(realWord.length))
 
     return (
