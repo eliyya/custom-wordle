@@ -1,5 +1,4 @@
 export default function Word({ word, colors, wid }) {
-    console.log(!colors, "ss", colors);
     return (
         <div className="flex flex-row">
             {Array.from(word).map((letter, i) => (
