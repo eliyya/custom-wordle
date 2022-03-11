@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Display from "../components/display";
+import Display from "../components/Display";
 import Keyboard from "../components/Keyboard";
 
 export default function Home() {
