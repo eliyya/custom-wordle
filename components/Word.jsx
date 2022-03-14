@@ -1,3 +1,8 @@
+/**
+ * 
+ * @param {{colors:{l:string;c:string}[]}} param0 
+ * @returns 
+ */
 export default function Word({ word, colors, wid }) {
     return (
         <div className="flex flex-row">
