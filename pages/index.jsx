@@ -2,6 +2,7 @@ import { useState } from "react";
 import Display from "../components/Display";
 import Keyboard from "../components/Keyboard";
 import confeti from 'canvas-confetti'
+import { useEffect } from "react";
 
 export default function Home() {
     const posibleWords = ["trevol", "trevoles"];
@@ -11,6 +12,24 @@ export default function Home() {
     const [colors, setColors] = useState([]);
     const [row, setRow] = useState(0);
     const [win, setWin] = useState(false)
+    const [with_nav, setNav] = useState(true)
+
+    useEffect(() => {
+        document.getElementsByTagName('body')[0].onkeydown = (e) => {
+            if (e.ctrlKey) command(e)
+            else if(Array.from('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM').includes(e.key)) setLetter({target:{innerHTML:e.key.toUpperCase()}})
+            else if (e.key == 'Backspace') deleteLetter()
+            else if (e.key == 'Enter') validateLetters()
+        }
+        setNav(localStorage.getItem('with_nav') == 'true')
+    })
+
+    const command = (e) => {
+        if (e.shiftKey && (e.key == 'z' || e.key == 'Z')) {
+            setNav(!with_nav)
+            localStorage.setItem('with_nav', !with_nav)
+        }
+    }
 
     const setLetter = ({ target: { innerHTML: letter } }) => {
         if (win) return
@@ -47,7 +66,7 @@ export default function Home() {
         if (!newColors.includes('g') && !newColors.includes('a')) {
             setColors([...colors, newColors])
             setWin(true)
-            confeti({ particleCount: 300, spread: 180 })
+            confeti({ particleCount: 600, spread: 180 })
             setTimeout(() => {
                 setWin(false)
                 setColors([])
@@ -58,7 +77,6 @@ export default function Home() {
         } else {
             setColors([...colors, newColors])
             setRow(row+1)
-            console.log(row);
             if (row === 5) {
                 setWin(true)
                 setTimeout(() => {
@@ -72,10 +90,19 @@ export default function Home() {
         }
     }
     return (
-        <div className="h-screen bg-gray-800 flex flex-row justify-center">
-            <main className="max-w-xl flex flex-col justify-evenly h-full">
+        <div className="h-screen bg-gray-800 flex flex-row justify-center bg-[url('/img/wallpaper.jpg')] bg-cover bg-center">
+            <main className="max-w-xl flex flex-col justify-between h-full">
+                {with_nav ? <nav className="h-16 w-full bg-white flex flex-row justify-between">
+                    <div>
+                        <a href=""></a>
+                    </div>
+                    <div>
+
+                    </div>
+                </nav> : <div></div>}
                 <Display colors={colors} words={words} realWord={realWord} />
                 <Keyboard validateLetters={validateLetters} setLetter={setLetter} deleteLetter={deleteLetter}/>
+                <div></div>
             </main>
         </div>
     );
