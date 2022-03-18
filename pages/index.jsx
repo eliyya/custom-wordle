@@ -7,8 +7,14 @@ import { useCallback } from "react";
 
 export default function Home() {
 
-    const [posibleWords, setPosibleWords] = useState(localStorage.getItem('posibleWords')?.split(/ +/gi)??["clover"])
-    const getWord = useCallback(() => (posibleWords[Math.floor(Math.random() * posibleWords.length)]??"wordle").toUpperCase(), [posibleWords])
+    const [posibleWords, setPosibleWords] = useLocalStorage('posibleWords', 'wordle')
+
+    const getWord = useCallback(() => {
+        const pw = posibleWords.split(/ +/gi)
+        let p = pw[Math.floor(Math.random() * pw.length)]
+        return p.toUpperCase()
+    }, [posibleWords])
+
     const [words, setWords] = useState([]);
     const [realWord, setWord] = useState(getWord());
     const [colors, setColors] = useState([]);
@@ -34,6 +40,9 @@ export default function Home() {
         let newWords = [...words];
         newWords[row] = w;
         setWords(newWords);
+        // const pwls = localStorage.getItem('posibleWords')?.split(/ +/gi)??[]
+        // if (posibleWords.length === 0 && pwls.length > 0) setPosibleWords(pwls)
+        // else if (posibleWords.length === 0) setPosibleWords(["wordle"])
     }, [realWord, row, with_nav, win, words])
 
     const deleteLetter = useCallback(() => {
@@ -86,12 +95,8 @@ export default function Home() {
     }, [colors, getWord, realWord, row, win, words, with_nav])
 
     const changeWords = (e) => {
-        localStorage.setItem('posibleWords', e.target.value)
-        setPosibleWords(e.target.value.split(/ +/gi))
-    }
-
-    const saveWords = () => {
-        document.getElementById('wrds')
+        // localStorage.setItem('posibleWords', e.target.value)
+        setPosibleWords(e.target.value)
     }
 
     useEffect(() => {
@@ -118,3 +123,42 @@ export default function Home() {
         </div>
     );
 }
+
+function useLocalStorage(key, initialValue) {
+    // State to store our value
+    // Pass initial state function to useState so logic is only executed once
+    const [storedValue, setStoredValue] = useState(() => {
+      if (typeof window === "undefined") {
+        return initialValue;
+      }
+      try {
+        // Get from local storage by key
+        const item = window.localStorage.getItem(key);
+        // Parse stored json or if none return initialValue
+        return item ? JSON.parse(item) : initialValue;
+      } catch (error) {
+        // If error also return initialValue
+        console.log(error);
+        return initialValue;
+      }
+    });
+    // Return a wrapped version of useState's setter function that ...
+    // ... persists the new value to localStorage.
+    const setValue = (value) => {
+      try {
+        // Allow value to be a function so we have same API as useState
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
+        // Save state
+        setStoredValue(valueToStore);
+        // Save to local storage
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        }
+      } catch (error) {
+        // A more advanced implementation would handle the error case
+        console.log(error);
+      }
+    };
+    return [storedValue, setValue];
+  }
