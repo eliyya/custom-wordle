@@ -3,35 +3,28 @@ import Display from "../components/Display";
 import Keyboard from "../components/Keyboard";
 import confeti from 'canvas-confetti'
 import { useEffect } from "react";
+import { useCallback } from "react";
 
 export default function Home() {
-    const posibleWords = ["trevol", "trevoles"];
-    const getWord = () => (posibleWords[Math.floor(Math.random() * posibleWords.length)]??"wordle").toUpperCase()
+
+    const [posibleWords, setPosibleWords] = useState(localStorage.getItem('posibleWords')?.split(/ +/gi)??["clover"])
+    const getWord = useCallback(() => (posibleWords[Math.floor(Math.random() * posibleWords.length)]??"wordle").toUpperCase(), [posibleWords])
     const [words, setWords] = useState([]);
     const [realWord, setWord] = useState(getWord());
     const [colors, setColors] = useState([]);
     const [row, setRow] = useState(0);
     const [win, setWin] = useState(false)
-    const [with_nav, setNav] = useState(true)
+    const [with_nav, setNav] = useState(false)
 
-    useEffect(() => {
-        document.getElementsByTagName('body')[0].onkeydown = (e) => {
-            if (e.ctrlKey) command(e)
-            else if(Array.from('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM').includes(e.key)) setLetter({target:{innerHTML:e.key.toUpperCase()}})
-            else if (e.key == 'Backspace') deleteLetter()
-            else if (e.key == 'Enter') validateLetters()
-        }
-        setNav(localStorage.getItem('with_nav') == 'true')
-    })
-
-    const command = (e) => {
+    const command = useCallback((e) => {
         if (e.shiftKey && (e.key == 'z' || e.key == 'Z')) {
             setNav(!with_nav)
             localStorage.setItem('with_nav', !with_nav)
         }
-    }
+    }, [with_nav])
 
-    const setLetter = ({ target: { innerHTML: letter } }) => {
+    const setLetter = useCallback(({ target: { innerHTML: letter } }) => {
+        if (with_nav) return
         if (win) return
         if (words[row].replace(/ +/g, "").length === realWord.length) return;
         let w = words[row];
@@ -41,9 +34,10 @@ export default function Home() {
         let newWords = [...words];
         newWords[row] = w;
         setWords(newWords);
-    };
+    }, [realWord, row, with_nav, win, words])
 
-    const deleteLetter = () => {
+    const deleteLetter = useCallback(() => {
+        if (with_nav) return
         if (win) return
         if (words[row].replace(/ +/g, "").length === 0) return
         let w = words[row].replace(/ +/g, "")
@@ -52,9 +46,10 @@ export default function Home() {
         let newWords = [...words];
         newWords[row] = w;
         setWords(newWords);
-    }
+    }, [realWord, row, with_nav, win, words])
 
-    const validateLetters = () => {
+    const validateLetters = useCallback(() => {
+        if (with_nav) return
         if (win) return
         if (words[row].replace(/ +/g, "").length !== realWord.length) return
         let newColors = []
@@ -88,17 +83,33 @@ export default function Home() {
                 }, 3_000)
             }
         }
+    }, [colors, getWord, realWord, row, win, words, with_nav])
+
+    const changeWords = (e) => {
+        localStorage.setItem('posibleWords', e.target.value)
+        setPosibleWords(e.target.value.split(/ +/gi))
     }
+
+    const saveWords = () => {
+        document.getElementById('wrds')
+    }
+
+    useEffect(() => {
+        document.getElementsByTagName('body')[0].onkeydown = (e) => {
+            if (e.ctrlKey) command(e)
+            else if(Array.from('qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM').includes(e.key)) setLetter({target:{innerHTML:e.key.toUpperCase()}})
+            else if (e.key == 'Backspace') deleteLetter()
+            else if (e.key == 'Enter') validateLetters()
+        }
+        setNav(localStorage.getItem('with_nav') == 'true')
+    }, [command, deleteLetter, setLetter, validateLetters])
+
     return (
         <div className="h-screen bg-gray-800 flex flex-row justify-center bg-[url('/img/wallpaper.jpg')] bg-cover bg-center">
             <main className="max-w-xl flex flex-col justify-between h-full">
-                {with_nav ? <nav className="h-16 w-full bg-white flex flex-row justify-between">
-                    <div>
-                        <a href=""></a>
-                    </div>
-                    <div>
-
-                    </div>
+                {with_nav ? <nav className="h-16 w-full bg-white flex flex-row justify-center">
+                    <input onChange={changeWords} value={posibleWords.join(' ')} className="border-slate-800 m-3 w-full text-center" id="wrds" type="text" />
+                    {/* <button onClick={changeWords} className="bg-green-500 m-3 px-2" >Guardar</button> */}
                 </nav> : <div></div>}
                 <Display colors={colors} words={words} realWord={realWord} />
                 <Keyboard validateLetters={validateLetters} setLetter={setLetter} deleteLetter={deleteLetter}/>
