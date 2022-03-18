@@ -113,7 +113,7 @@ export default function Home() {
         <div className="h-screen bg-gray-800 flex flex-row justify-center bg-[url('/img/wallpaper.jpg')] bg-cover bg-center">
             <main className="max-w-xl flex flex-col justify-between h-full">
                 {with_nav ? <nav className="h-16 w-full bg-white flex flex-row justify-center">
-                    <input onChange={changeWords} value={posibleWords.join(' ')} className="border-slate-800 m-3 w-full text-center" id="wrds" type="text" />
+                    <input onChange={changeWords} value={posibleWords} className="border-slate-800 m-3 w-full text-center" id="wrds" type="text" />
                     {/* <button onClick={changeWords} className="bg-green-500 m-3 px-2" >Guardar</button> */}
                 </nav> : <div></div>}
                 <Display colors={colors} words={words} realWord={realWord} />
